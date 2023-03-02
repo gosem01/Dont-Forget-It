@@ -54,8 +54,25 @@ const readAndAppend = (content, file) => {
   });
 };
 
+const readAndDelete = (id, file) => {
+  fs.readFile(file, 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+    } else {
+      const parsedData = JSON.parse(data);
+      const index = parsedData.findIndex(obj => obj.id === id);
+      if (index !== -1) {
+        parsedData.splice(index, 1);
+        writeToFile(file, parsedData);
+      } else {
+        console.error(`Object with id ${id} not found in ${file}`);
+      }
+    }
+  });
+};
+
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public/index.html'));
   });
 
 app.get('/api/notes', (req, res) => {
@@ -84,6 +101,15 @@ app.post('/api/notes', (req, res) => {
   } else {
     res.error('Error in adding Note');
   }
+});
+
+app.delete('/api/notes/:id', (req, res) => {
+  console.log("INSIDE DELETE REQUEST");
+  console.log(req.path);
+  const responseURL = req.path;
+  const id = responseURL.split('/')[3];
+  readAndDelete(id, './db/db.json');
+  res.json(`Note deleted 🚀`);
 });
 
 app.listen(PORT, () => {
