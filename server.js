@@ -1,7 +1,6 @@
 const express = require('express');
 const path = require('path');
 const pulls = require('./db/db.json');
-// const api = require('./public/assets/js/index.js');
 const fs = require('fs');
 const util = require('util');
 const uuid = require('./helpers/uuid');
@@ -11,7 +10,6 @@ const PORT = process.env.PORT || 3001;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// app.use('/api', api);
 
 const middleware = (req, res, next) => {
   const yellow = '\x1b[33m%s\x1b[0m';
@@ -60,8 +58,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
   });
 
-// app.get('/api', (req, res) => res.json(pulls));
-
 app.get('/api/notes', (req, res) => {
     console.info(`${req.method} request received for notes`);
     readFromFile('./db/db.json').then((data) => res.json(JSON.parse(data)));
@@ -70,8 +66,6 @@ app.get('/api/notes', (req, res) => {
 app.use('/notes', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/notes.html'));
 });
-
-// app.use();
 
 app.post('/api/notes', (req, res) => {
   console.info(`${req.method} request received to add a note`);
