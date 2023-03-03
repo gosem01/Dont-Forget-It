@@ -1,7 +1,6 @@
 const express = require('express');
 const path = require('path');
 const pulls = require('./db/db.json');
-// const api = require('./public/assets/js/index.js');
 const fs = require('fs');
 const util = require('util');
 const uuid = require('./helpers/uuid');
@@ -11,7 +10,6 @@ const PORT = process.env.PORT || 3001;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// app.use('/api', api);
 
 const middleware = (req, res, next) => {
   const yellow = '\x1b[33m%s\x1b[0m';
@@ -56,11 +54,26 @@ const readAndAppend = (content, file) => {
   });
 };
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+const readAndDelete = (id, file) => {
+  fs.readFile(file, 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+    } else {
+      const parsedData = JSON.parse(data);
+      const index = parsedData.findIndex(obj => obj.id === id);
+      if (index !== -1) {
+        parsedData.splice(index, 1);
+        writeToFile(file, parsedData);
+      } else {
+        console.error(`Object with id ${id} not found in ${file}`);
+      }
+    }
   });
+};
 
-// app.get('/api', (req, res) => res.json(pulls));
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/index.html'));
+  });
 
 app.get('/api/notes', (req, res) => {
     console.info(`${req.method} request received for notes`);
@@ -70,8 +83,6 @@ app.get('/api/notes', (req, res) => {
 app.use('/notes', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/notes.html'));
 });
-
-// app.use();
 
 app.post('/api/notes', (req, res) => {
   console.info(`${req.method} request received to add a note`);
@@ -90,6 +101,15 @@ app.post('/api/notes', (req, res) => {
   } else {
     res.error('Error in adding Note');
   }
+});
+
+app.delete('/api/notes/:id', (req, res) => {
+  console.log("INSIDE DELETE REQUEST");
+  console.log(req.path);
+  const responseURL = req.path;
+  const id = responseURL.split('/')[3];
+  readAndDelete(id, './db/db.json');
+  res.json(`Note deleted 🚀`);
 });
 
 app.listen(PORT, () => {
